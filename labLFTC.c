@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<string.h>
 #include<ctype.h>
+#include <stdarg.h>
 #define SAFEALLOC(var,Type) if((var=(Type*)malloc(sizeof(Type)))==NULL){printf("not enough memory\n");exit(-2);}
 
 char *pCrtChr;
@@ -644,6 +645,144 @@ int getNextToken()
 }
 }
 
+void tkerr(const Token *tk,const char *fmt,...)
+{
+va_list va;
+va_start(va,fmt);
+fprintf(stderr,"error in line %d: ",tk->line);
+vfprintf(stderr,fmt,va);
+fputc('\n',stderr);
+va_end(va);
+exit(-1);
+}
+
+
+Token *crtTk;//Tokenul curent
+
+int consume(int code)//Consuma atomi terminali
+{
+    if(crtTk->code==code)
+    {
+        crtTk=crtTk->next;
+        return 1;
+    }
+    else
+        return 0;
+}
+
+int typeBase()
+{
+    Token *startTk=crtTk;
+    if(consume(INT) || consume(DOUBLE) || consume(CHAR))
+        return 1;
+    else
+        if(consume(STRUCT))
+        {
+            if(consume(ID))
+                return 1;
+        }
+    crtTk=startTk;
+    return 0;
+    
+}
+
+int arrayDecl()
+{
+    Token *startTk=crtTk;
+    if(consume(LBRACKET))
+    {
+        expr();
+        if(consume(RBRACKET))
+            return 1;
+        else
+        {
+            tkerr(crtTk,"Missing right bracket!");
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int declStruct()
+{
+    Token *startTk=crtTk;
+    if(consume(STRUCT))
+    {
+        if(consume(ID))
+        {
+            if(consume(LACC))
+            {
+                for(;;)
+                {
+                    if(!declVar())
+                    break;
+                }
+                if(consume(RACC))
+                {
+                    if(consume(SEMICOLON))
+                        return 1;
+                    else
+                    {
+                        tkerr(crtTk,"Missing semicolon!");
+                    }
+                }
+                else tkerr(crtTk,"Missing right accolade!");   
+            }
+        }
+    }
+    return 0;
+    crtTk=startTk;
+}
+
+int declVar()
+{
+    Token *startTk=crtTk;
+    if(typeBase())
+    {
+        if(consume(ID))
+        {
+            arrayDecl();
+            for(;;)
+            {
+                if(consume(COMMA))
+                {
+                    if(consume(ID))
+                    {
+                        arrayDecl();
+                    }
+                    else
+                    {
+                        tkerr(crtTk,"Missing variable ID after comma!");
+                    }
+                }
+                else
+                break;
+            }
+            if(consume(SEMICOLON))
+            {
+                return 1;
+            }
+            else
+            {
+                tkerr(crtTk,"Missing semicolon!");
+            }
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int typeName()
+{
+    Token *startTk=crtTk;
+    if(typeBase())
+    {
+        arrayDecl();
+        return 1;
+    }
+    crtTk=startTk;
+    return 0;
+}
 
 int main()
 {
