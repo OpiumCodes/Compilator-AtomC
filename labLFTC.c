@@ -680,6 +680,11 @@ int typeBase()
         {
             if(consume(ID))
                 return 1;
+            else
+            {
+                tkerr(crtTk,"Missing ID for STRUCT");
+            }
+            
         }
     crtTk=startTk;
     return 0;
@@ -729,6 +734,11 @@ int declStruct()
                 else tkerr(crtTk,"Missing right accolade!");   
             }
         }
+        else
+        {
+            tkerr(crtTk,"Missing ID for STRUCT");
+        }
+        
     }
     return 0;
     crtTk=startTk;
@@ -746,13 +756,9 @@ int declVar()
             {
                 if(consume(COMMA))
                 {
-                    if(consume(ID))
+                    if(!consume(ID))
                     {
-                        arrayDecl();
-                    }
-                    else
-                    {
-                        tkerr(crtTk,"Missing variable ID after comma!");
+                        tkerr(crtTk,"Missing ID after comma!");
                     }
                 }
                 else
@@ -768,6 +774,11 @@ int declVar()
             }
         }
     }
+    else
+    {
+        tkerr(crtTk,"Missing ID after typeBase!");
+    }
+    
     crtTk=startTk;
     return 0;
 }
@@ -782,6 +793,173 @@ int typeName()
     }
     crtTk=startTk;
     return 0;
+}
+
+int declFunc()
+{
+    Token *startTk=crtTk;
+    if(typeBase())
+    {
+        consume(MUL);
+        if(consume(ID))
+        {
+            if(consume(LPAR))
+            {
+                funcArg();
+                for(;;)
+                {
+                    if(consume(COMMA))
+                        funcArg();
+                }
+                if(consume(RPAR))
+                {
+                    if(stmCompound())
+                    {
+                        return 1;
+                    }
+                }
+            }
+            else
+            {
+                tkerr(crtTk,"Missing ID after typebase");
+            }
+            
+        }
+    }
+    else 
+    {
+        if(consume(VOID))
+        {
+            if(consume(ID))
+            {
+                if(consume(LPAR))
+                {
+                    funcArg();
+                    for(;;)
+                    {
+                        if(consume(COMMA))
+                            funcArg();
+                    }
+                    if(consume(RPAR))
+                    {
+                        if(stmCompound())
+                        {
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int funcArg()
+{
+    Token *startTk=crtTk;
+    if(typeBase())
+    {
+        if(consume(ID))
+        {
+            arrayDecl();
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int stm()
+{
+    Token *startTk=crtTk;
+    if(consume(IF))
+    {
+        if(consume(LPAR))
+        {
+            if(expr())
+            {
+                if(consume(RPAR))
+                {
+                    if(stm())
+                    {
+                        if(consume(ELSE))
+                        {
+                            if(stm())
+                                return 1;
+                        }
+                        return 1;
+                    }
+                }
+            }
+        }
+    }
+    else if(consume(WHILE))
+        {
+            if(consume(LPAR))
+            {
+                if(expr())
+                {
+                    if(consume(RPAR))
+                    {
+                        if(stm())
+                        {
+                            return 1;
+                        }
+                    }
+                }
+            }
+        }
+        else 
+        if(consume(FOR))
+        {
+            if(consume(LPAR))
+            {
+                expr();
+                if(consume(SEMICOLON))
+                {
+                    expr();
+                    if(consume(SEMICOLON))
+                    {
+                        expr();
+                        if(consume(RPAR))
+                        {
+                            if(stm())
+                            {
+                                return 1;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else 
+        if(consume(BREAK))
+        {
+            if(consume(SEMICOLON))
+            {
+                return 1;
+            }
+        }
+        else
+        if(consume(RETURN))
+        {
+            expr();
+            if(consume(SEMICOLON))
+            {
+                return 1;
+            }
+        }
+        else
+        {
+            expr();
+            if(consume(SEMICOLON))
+            {
+                return 1;
+            }
+        }
+        crtTk=startTk;
+        return 0;
 }
 
 int main()
