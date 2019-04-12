@@ -659,6 +659,30 @@ exit(-1);
 
 Token *crtTk;//Tokenul curent
 
+int typeBase();
+int unit();
+int declStrunct();
+int declVar();
+int typeBase();
+int arrayDecl();
+int typeName();
+int declFunc();
+int funcArg();
+int stm();
+int stmCompound();
+int expr();
+int exprAssign();
+int exprOr();
+int exprAnd();
+int exprEq();
+int exprRel();
+int exprAdd();
+int exprMul();
+int exprCast();
+int exprUnary();
+int exprPostfix();
+int exprPrimary();
+
 int consume(int code)//Consuma atomi terminali
 {
     if(crtTk->code==code)
@@ -668,6 +692,21 @@ int consume(int code)//Consuma atomi terminali
     }
     else
         return 0;
+}
+
+int funcArg()
+{
+    Token *startTk=crtTk;
+    if(typeBase())
+    {
+        if(consume(ID))
+        {
+            arrayDecl();
+            return 1;
+        }
+    }
+    startTk=crtTk;
+    return 0;
 }
 
 int typeBase()
@@ -708,41 +747,6 @@ int arrayDecl()
     return 0;
 }
 
-int declStruct()
-{
-    Token *startTk=crtTk;
-    if(consume(STRUCT))
-    {
-        if(consume(ID))
-        {
-            if(consume(LACC))
-            {
-                for(;;)
-                {
-                    if(!declVar())
-                    break;
-                }
-                if(consume(RACC))
-                {
-                    if(consume(SEMICOLON))
-                        return 1;
-                    else
-                    {
-                        tkerr(crtTk,"Missing semicolon!");
-                    }
-                }
-                else tkerr(crtTk,"Missing right accolade!");   
-            }
-        }
-        else
-        {
-            tkerr(crtTk,"Missing ID for STRUCT");
-        }
-        
-    }
-    return 0;
-    crtTk=startTk;
-}
 
 int declVar()
 {
@@ -783,6 +787,42 @@ int declVar()
     return 0;
 }
 
+int declStruct()
+{
+    Token *startTk=crtTk;
+    if(consume(STRUCT))
+    {
+        if(consume(ID))
+        {
+            if(consume(LACC))
+            {
+                for(;;)
+                {
+                    if(!declVar())
+                    break;
+                }
+                if(consume(RACC))
+                {
+                    if(consume(SEMICOLON))
+                        return 1;
+                    else
+                    {
+                        tkerr(crtTk,"Missing semicolon!");
+                    }
+                }
+                else tkerr(crtTk,"Missing right accolade!");   
+            }
+        }
+        else
+        {
+            tkerr(crtTk,"Missing ID for STRUCT");
+        }
+        
+    }
+    return 0;
+    crtTk=startTk;
+}
+
 int typeName()
 {
     Token *startTk=crtTk;
@@ -800,45 +840,65 @@ int declFunc()
     Token *startTk=crtTk;
     if(typeBase())
     {
-        consume(MUL);
-        if(consume(ID))
-        {
-            if(consume(LPAR))
-            {
-                funcArg();
-                for(;;)
-                {
-                    if(consume(COMMA))
-                        funcArg();
-                }
-                if(consume(RPAR))
-                {
-                    if(stmCompound())
-                    {
-                        return 1;
-                    }
-                }
-            }
-            else
-            {
-                tkerr(crtTk,"Missing ID after typebase");
-            }
-            
-        }
-    }
-    else 
-    {
-        if(consume(VOID))
+        if(consume(MUL))
         {
             if(consume(ID))
             {
                 if(consume(LPAR))
                 {
-                    funcArg();
+                    if(funcArg())
+                    {
+                        for(;;)
+                        {
+                            if(consume(COMMA))
+                                if(!funcArg())
+                                {
+                                    tkerr(crtTk,"Missing function argumnets after COMMA!");
+                                }
+                            else
+                            break;
+                        }
+                        if(consume(RPAR))
+                        {
+                            if(stmCompound())
+                            {
+                                return 1;
+                            }
+                            else tkerr(crtTk,"Missing compound for function!");
+                        }
+                        else tkerr(crtTk,"Missing RPAR in function!");
+                    }
+                }
+                else
+                {
+                    tkerr(crtTk,"Missing LPAR after ID in function!");
+                }
+                
+            }
+            else
+            {
+                tkerr(crtTk,"Missing ID for function!");
+            }
+            
+        }
+    }
+    if(consume(VOID))
+    {
+        if(consume(ID))
+        {
+            if(consume(LPAR))
+            {
+                if(funcArg())
+                {
                     for(;;)
                     {
                         if(consume(COMMA))
-                            funcArg();
+                            if(!funcArg())
+                            {
+                                tkerr(crtTk,"Missing function argumnets after COMMA!");
+                            }
+                            else
+                            break;
                     }
                     if(consume(RPAR))
                     {
@@ -846,24 +906,20 @@ int declFunc()
                         {
                             return 1;
                         }
+                        else tkerr(crtTk,"Missing compound for function!");
                     }
+                        else tkerr(crtTk,"Missing RPAR in function!");
                 }
             }
+            else
+            {
+                tkerr(crtTk,"Missing LPAR after ID in function!");
+            }
+                
         }
-    }
-    crtTk=startTk;
-    return 0;
-}
-
-int funcArg()
-{
-    Token *startTk=crtTk;
-    if(typeBase())
-    {
-        if(consume(ID))
+        else
         {
-            arrayDecl();
-            return 1;
+            tkerr(crtTk,"Missing ID for function!");
         }
     }
     crtTk=startTk;
@@ -962,6 +1018,413 @@ int stm()
         return 0;
 }
 
+int stmCompound()
+{
+    Token *startTk=crtTk;
+    if(consume(LACC))
+    {
+        for(;;)
+        {
+            if(!declVar() && !stm())
+            {
+                break;
+            }
+        }
+        if(consume(RACC))
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing RACC at the end of struct!");            
+        }
+        
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int expr()
+{
+    Token *startTk=crtTk;
+    if(exprAssign())
+        return 1;
+    crtTk=startTk;
+    return 0;
+}
+
+int exprAssign()
+{
+    Token *startTk=crtTk;
+    if(exprUnary())
+    {
+        if(consume(ASSIGN))
+        {
+            if(exprAssign() || exprOr())
+            {
+                return 1;
+            }
+            else
+            {
+                tkerr(crtTk,"Missing an expression after ASSIGN!");
+            }
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int exprOrPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(OR))
+    {
+        if(exprAnd() || exprOrPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after OR!");
+        }
+        
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprOr()
+{
+    Token *startTk=crtTk;
+    if(exprAnd())
+    {
+        if(exprOrPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprAnd: exprAnd AND exprEq | exprEq ;
+
+int exprAndPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(AND))
+    {
+        if(exprEq() || exprAndPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after AND!");
+        }
+        
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprAnd()
+{
+    Token *startTk=crtTk;
+    if(exprEq())
+    {
+        if(exprAndPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprEq: exprEq ( EQUAL | NOTEQ ) exprRel | exprRel ;
+
+int exprEqPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(EQUAL) || consume(NOTEQ))
+    {
+        if(exprRel() || exprEqPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after EQUAL or NOTEQ!");
+        }
+        
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprEq()
+{
+    Token *startTk=crtTk;
+    if(exprRel())
+    {
+        if(exprEqPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprRel: exprRel ( LESS | LESSEQ | GREATER | GREATEREQ ) exprAdd | exprAdd ;
+
+int exprRelPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(LESS) || consume(LESSEQ) || consume(GREATER) || consume(GREATEREQ))
+    {
+        if(exprAdd() || exprEqPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after LESS or LESSEQ or GREATER or GREATEREQ!");
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprRel()
+{
+    Token *startTk=crtTk;
+    if(exprAdd())
+    {
+        if(exprRelPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprAdd: exprAdd ( ADD | SUB ) exprMul | exprMul ;
+
+int exprAddPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(ADD) || consume(SUB))
+    {
+        if(exprMul() || exprAddPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after ADD or SUB");
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprAdd()
+{
+    Token *startTk=crtTk;
+    if(exprMul())
+    {
+        if(exprAddPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprMul: exprMul ( MUL | DIV ) exprCast | exprCast ;
+
+int exprMulPrim()
+{
+    Token *startTk=crtTk;
+    if(consume(MUL) || consume(DIV))
+    {
+        if(exprCast() || exprMulPrim())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after MUL or DIV");
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+int exprMul()
+{
+    Token *startTk=crtTk;
+    if(exprCast())
+    {
+        if(exprMulPrim())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprCast: LPAR typeName RPAR exprCast | exprUnary ;
+
+int exprCast()
+{
+    Token *startTk=crtTk;
+    if(consume(LPAR))
+    {
+        if(typeName())
+        {
+            if(consume(RPAR))
+            {
+                if(exprCast() || exprUnary())
+                {
+                    return 1;
+                }
+            }
+            else
+                {
+                    tkerr(crtTk,"Missing RPAR in cast!");
+                }
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+//exprUnary: ( SUB | NOT ) exprUnary | exprPostfix ;
+
+int exprUnary()
+{
+    Token *startTk=crtTk;
+    if(consume(SUB) || consume(NOT))
+    {
+        if(exprUnary() || exprPostfix())
+        {
+            return 1;
+        }
+        else
+        {
+            tkerr(crtTk,"Missing expression after SUB or NOT!");
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+int exprPostfixPrime()
+{
+    Token *startTk=crtTk;
+    if(consume(LBRACKET))
+    {
+        if(expr())
+        {
+            if(consume(RBRACKET))
+            {
+                if(exprPostfixPrime())
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                tkerr(crtTk,"Missing RBRACKET in postfix!");
+            }
+        }
+    }
+    else
+    {
+        if(consume(DOT))
+        {
+            if(consume(ID))
+            {
+                if(exprPostfixPrime())
+                {
+                    return 1;
+                }
+            }
+            else
+            {
+                tkerr(crtTk,"Missing ID after DOT in postfix!");
+            }
+        }
+    }
+    
+    crtTk=startTk;
+    return 0;
+}
+
+int exprPostfix()
+{
+    Token *startTk=crtTk;
+    if(exprPrimary())
+    {
+        if(exprPostfixPrime())
+        {
+            return 1;
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
+/*
+exprPrimary: ID ( LPAR ( expr ( COMMA expr )* )? RPAR )?
+           | CT_INT
+           | CT_REAL 
+           | CT_CHAR 
+           | CT_STRING 
+           | LPAR expr RPAR ;
+*/
+
+int exprPrimary()
+{
+    Token *startTk=crtTk;
+    if(consume(ID))
+    {
+        consume(LPAR);
+        expr();
+        for(;;)
+        {
+            if(consume(COMMA))
+            {
+                if(!expr())
+                {
+                    break;
+                }
+            }
+        }
+        if(consume(CT_INT))return 1;
+        if(consume(CT_REAL))return 1;
+        if(consume(CT_CHAR))return 1;
+        if(consume(CT_STRING))return 1;
+        if(consume(LPAR))
+        {
+            if(expr())
+            {
+                if(consume(RPAR))
+                {
+                    return 1;
+                }
+                else
+                {
+                    tkerr(crtTk,"Missing RPAR in expression!");
+                }
+                
+            }
+        }
+    }
+    crtTk=startTk;
+    return 0;
+}
+
 int main()
 {
     char inbuf[10001];
@@ -978,6 +1441,7 @@ int main()
     fclose(fis);
     while(o=getNextToken()!=END);
     afisare();
+    crtTk=tokens;
     return 0;
 }
 
