@@ -708,18 +708,18 @@ int unit()
 int consume(int code)//Consuma atomi terminali
 {
     //printf("consume()\n");
-    printf("Line:%d Trying to consume: %s",crtTk->line,conv(code));
+    //printf("Line:%d Trying to consume: %s",crtTk->line,conv(code));
     lastToken=crtTk;
     if(crtTk->code==code)
     {
-        printf("%d : %s\n",crtTk->line,conv(crtTk->code));
-        printf("=>consumed\n ");
+        //printf("%d : %s\n",crtTk->line,conv(crtTk->code));
+        //printf("=>consumed\n ");
         crtTk=crtTk->next;
         return 1;
     }
     else
     {
-        printf("=>false( %s )\n",conv(crtTk->code));
+        //printf("=>false( %s )\n",conv(crtTk->code));
         return 0;
     }
 }
@@ -769,7 +769,7 @@ int typeBase()
 
 int arrayDecl()
 {
-    printf("arrayDecl()\n");
+    //printf("arrayDecl()\n");
     Token *startTk=crtTk;
     if(consume(LBRACKET))
     {
@@ -788,7 +788,7 @@ int arrayDecl()
 
 int declVar()
 {
-    printf("declVar()\n");
+    //printf("declVar()\n");
     Token *startTk=crtTk;
     if(typeBase())
     {
@@ -833,7 +833,7 @@ int declVar()
 
 int declStruct()
 {
-    printf("declStruct()\n");
+    //printf("declStruct()\n");
     Token *startTk=crtTk;
     if(consume(STRUCT))
     {
@@ -1127,7 +1127,7 @@ int stmCompound()
 
 int expr()
 {
-    printf("expr()\n");
+    //printf("expr()\n");
     Token *startTk=crtTk;
     if(exprAssign())
     {
@@ -1140,17 +1140,15 @@ int expr()
 
 int exprAssign()
 {
-    printf("exprAssign()\n");
+    //printf("exprAssign()\n");
     Token *startTk=crtTk;
     if(exprUnary())
     {
         //printf("Trece de Unary\n");
         if(consume(ASSIGN))
         {
-            printf("Ajunge in ASSIGN!\n");
             if(exprAssign())
             {
-                printf("Assign e true!\n");
                 //printf("exprAssign()->exprAssign()\n");
                 return 1;
             }
@@ -1173,7 +1171,7 @@ int exprAssign()
 
 int exprOrPrim()
 {
-    printf("exprOrPrime()\n");
+    //printf("exprOrPrime()\n");
     if(consume(OR))
     {
         if(exprAnd())
@@ -1194,7 +1192,7 @@ int exprOrPrim()
 }
 int exprOr()
 {
-    printf("exprOr()\n");
+    //printf("exprOr()\n");
     Token *startTk=crtTk;
     if(exprAnd())
     {
@@ -1213,7 +1211,7 @@ int exprOr()
 
 int exprAndPrim()
 {
-    printf("exprAndPrime()\n");
+    //printf("exprAndPrime()\n");
     if(consume(AND))
     {
         if(exprEq())
@@ -1233,7 +1231,7 @@ int exprAndPrim()
 }
 int exprAnd()
 {
-    printf("exprAnd()\n");
+    //printf("exprAnd()\n");
     Token *startTk=crtTk;
     if(exprEq())
     {
@@ -1252,7 +1250,7 @@ int exprAnd()
 
 int exprEqPrim()
 {
-    printf("exprEqPrime()\n");
+    //printf("exprEqPrime()\n");
     if(consume(EQUAL) || consume(NOTEQ))
     {
         if(exprRel())
@@ -1273,7 +1271,7 @@ int exprEqPrim()
 }
 int exprEq()
 {
-    printf("exprEq()\n");
+    //printf("exprEq()\n");
     Token *startTk=crtTk;
     if(exprRel())
     {
@@ -1292,7 +1290,7 @@ int exprEq()
 
 int exprRelPrim()
 {
-    printf("exprRelPrime()\n");
+    //printf("exprRelPrime()\n");
     if(consume(LESS) || consume(LESSEQ) || consume(GREATER) || consume(GREATEREQ))
     {
         if(exprAdd())
@@ -1312,7 +1310,7 @@ int exprRelPrim()
 }
 int exprRel()
 {
-    printf("exprRel\n");
+    //printf("exprRel\n");
     Token *startTk=crtTk;
     if(exprAdd())
     {
@@ -1333,7 +1331,7 @@ int exprRel()
 //delSymbolsAfter() sterge toate simbolurile de dupa simbolul pe care il dam noi din tabela
 int exprAddPrim()
 {
-    printf("exprAddPrime()\n");
+    //printf("exprAddPrime()\n");
     if(consume(ADD) || consume(SUB))
     {
         if(exprMul())
@@ -1353,7 +1351,7 @@ int exprAddPrim()
 }
 int exprAdd()
 {
-    printf("exprAdd()\n");
+    //printf("exprAdd()\n");
     Token *startTk=crtTk;
     if(exprMul())
     {
@@ -1372,7 +1370,7 @@ int exprAdd()
 
 int exprMulPrim()
 {
-    printf("exprMulPrime()\n");
+    //printf("exprMulPrime()\n");
     if(consume(MUL) || consume(DIV))
     {
         if(exprCast())
@@ -1392,7 +1390,7 @@ int exprMulPrim()
 }
 int exprMul()
 {
-    printf("exprMul()\n");
+    //printf("exprMul()\n");
     Token *startTk=crtTk;
     if(exprCast())
     {
@@ -1411,7 +1409,7 @@ int exprMul()
 
 int exprCast()
 {
-    printf("exprCast()\n");
+    //printf("exprCast()\n");
     Token *startTk=crtTk;
     if(consume(LPAR))
     {
@@ -1445,7 +1443,7 @@ int exprCast()
 
 int exprUnary()
 {
-    printf("exprUnary()\n");
+    //printf("exprUnary()\n");
     Token *startTk=crtTk;
     //printf("%s\n\n\n",conv(crtTk->code));
     if(consume(SUB) || consume(NOT))
@@ -1471,7 +1469,7 @@ int exprUnary()
 
 int exprPostfixPrime()
 {
-    printf("exprPostfixPrime()\n");
+    //printf("exprPostfixPrime()\n");
     if(consume(LBRACKET))
     {
         if(expr())
@@ -1514,8 +1512,7 @@ int exprPostfixPrime()
 
 int exprPostfix()
 {
-    int x;
-    printf("exprPostfix()\n");
+    //printf("exprPostfix()\n");
     Token *startTk=crtTk;
     if(exprPrimary())
     {
@@ -1540,7 +1537,7 @@ exprPrimary: ID ( LPAR ( expr ( COMMA expr )* )? RPAR )?
 
 int exprPrimary()
 {
-    printf("exprPrimary()\n");
+    //printf("exprPrimary()\n");
     Token *startTk=crtTk;
     if(consume(ID))
     {
@@ -1568,27 +1565,22 @@ int exprPrimary()
             }
              
         }
-        printf("ID returneaza true!\n");
         return 1;
     }
     if(consume(CT_INT))
     {   
-        printf("CT_INT returneaza true\n");
         return 1;
     }
     if(consume(CT_REAL))
     {   
-        printf("CT_REAL returneaza true\n");
         return 1;
     }
     if(consume(CT_CHAR))
     {   
-        printf("CT_CHAR returneaza true\n");
         return 1;
     }
     if(consume(CT_STRING))
     {   
-        printf("CT_STRING returneaza true\n");
         return 1;
     }
     if(consume(LPAR))
@@ -1631,7 +1623,7 @@ int main()
     while(o=getNextToken()!=END);
     afisare();
     crtTk=tokens;
-    printf("%s\n",conv(lastToken->code));
+    //printf("%s\n",conv(lastToken->code));
     if(unit()==1)
     {
         printf("Sintaxa corecta!");
