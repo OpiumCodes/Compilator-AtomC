@@ -712,7 +712,7 @@ int consume(int code)//Consuma atomi terminali
     lastToken=crtTk;
     if(crtTk->code==code)
     {
-        //printf("%d : %s\n",crtTk->line,conv(crtTk->code));
+        printf("%d : %s\n",crtTk->line,conv(crtTk->code));
         printf("=>consumed\n ");
         crtTk=crtTk->next;
         return 1;
@@ -769,7 +769,7 @@ int typeBase()
 
 int arrayDecl()
 {
-    //printf("arrayDecl()\n");
+    printf("arrayDecl()\n");
     Token *startTk=crtTk;
     if(consume(LBRACKET))
     {
@@ -788,7 +788,7 @@ int arrayDecl()
 
 int declVar()
 {
-    //printf("declVar()\n");
+    printf("declVar()\n");
     Token *startTk=crtTk;
     if(typeBase())
     {
@@ -833,7 +833,7 @@ int declVar()
 
 int declStruct()
 {
-    //printf("declStruct()\n");
+    printf("declStruct()\n");
     Token *startTk=crtTk;
     if(consume(STRUCT))
     {
@@ -864,8 +864,8 @@ int declStruct()
         }
         
     }
-    return 0;
     crtTk=startTk;
+    return 0;
 }
 
 int typeName()
@@ -1088,6 +1088,10 @@ int stm()
                     return 1;
                 }
                 else tkerr(crtTk,"Missing SEMICOLON after expr!");
+            }
+            else if(consume(SEMICOLON))
+            {
+                return 1;
             }
         }
         crtTk=startTk;
@@ -1324,7 +1328,9 @@ int exprRel()
 }
 
 //exprAdd: exprAdd ( ADD | SUB ) exprMul | exprMul ;
-
+//de modificat consume adaugat consumed tk
+//find simbol trebuie sa caute in tabela de simboluri de jos in sus
+//delSymbolsAfter() sterge toate simbolurile de dupa simbolul pe care il dam noi din tabela
 int exprAddPrim()
 {
     printf("exprAddPrime()\n");
