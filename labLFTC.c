@@ -1160,11 +1160,11 @@ int exprAssign()
         //else tkerr(crtTk,"Missing ASSIGN after exprUnary!");
     }
     crtTk=startTk;
-        if(exprOr())
-        {
+    if(exprOr())
+    {
             //printf("exprAssing()->exprOr()\n");
-            return 1;
-        }
+        return 1;
+    }
     crtTk=startTk;
     return 0;
 }
@@ -1319,7 +1319,7 @@ int exprRel()
             //printf("exprRel()->exprRelPrim()\n");
             return 1;
         }
-        tkerr(crtTk,"Missing expression after exprAdd");
+        else tkerr(crtTk,"Missing expression after exprAdd");
     }
     crtTk=startTk;
     return 0;
@@ -1541,7 +1541,7 @@ int exprPrimary()
     Token *startTk=crtTk;
     if(consume(ID))
     {
-        printf("%s\n",crtTk->text);
+        //printf("%s\n",crtTk->text);
         if(consume(LPAR))
         {
             if(expr())
@@ -1589,7 +1589,6 @@ int exprPrimary()
         {
             if(consume(RPAR))
             {
-                printf("LPAR RPAR returneaza true\n");
                 return 1;
             }
             else
